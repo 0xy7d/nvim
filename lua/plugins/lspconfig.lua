@@ -1,53 +1,65 @@
 return {
-  {
-    "neovim/nvim-lspconfig",
-    config = function()
-      local capabilities = vim.lsp.protocol.make_client_capabilities()
-      local ok, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
-      if ok then
-        capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
-      end
+    {
+	"neovim/nvim-lspconfig",
+	config = function()
+	    local capabilities = vim.lsp.protocol.make_client_capabilities()
+	    local ok, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
+	    if ok then
+		capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
+	    end
 
-      local on_attach = function(_, bufnr)
-        local opts = { noremap = true, silent = true, buffer = bufnr }
-        vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-        vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-        vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
-        vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
-        vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
-        vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-      end
+	    local on_attach = function(_, bufnr)
+		local opts = { noremap = true, silent = true, buffer = bufnr }
+		vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+		vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+		vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+		vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
+		vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+		vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+	    end
 
-      -- Python
-      vim.lsp.config("pyright", {
-        capabilities = capabilities,
-        on_attach = on_attach,
-      })
+	    -- Python (Pyright with auto venv detection)
+	    vim.lsp.config("pyright", {
+		capabilities = capabilities,
+		on_attach = on_attach,
+		settings = {
+		    python = {
+			pythonPath = (function()
+			    local venv = vim.fn.getcwd() .. "/.venv/bin/python"
+			    if vim.fn.executable(venv) == 1 then
+				return venv
+			    else
+				return vim.fn.exepath("python3") or vim.fn.exepath("python")
+			    end
+			end)(),
+		    },
+		},
+	    })
 
-      -- Go
-      vim.lsp.config("gopls", {
-        capabilities = capabilities,
-        on_attach = on_attach,
-        settings = {
-          gopls = {
-            analyses = { unusedparams = true },
-            staticcheck = true,
-          },
-        },
-      })
+	    -- Go
+	    vim.lsp.config("gopls", {
+		capabilities = capabilities,
+		on_attach = on_attach,
+		settings = {
+		    gopls = {
+			analyses = { unusedparams = true },
+			staticcheck = true,
+		    },
+		},
+	    })
 
-      -- C++
-      vim.lsp.config("clangd", {
-        capabilities = capabilities,
-        on_attach = on_attach,
-        cmd = { "clangd", "--background-index", "--clang-tidy" },
-      })
+	    -- C++
+	    vim.lsp.config("clangd", {
+		capabilities = capabilities,
+		on_attach = on_attach,
+		cmd = { "clangd", "--background-index", "--clang-tidy" },
+	    })
 
-      -- finally, start servers
-      vim.lsp.enable("pyright")
-      vim.lsp.enable("gopls")
-      vim.lsp.enable("clangd")
-    end,
-  },
+	    -- finally, start servers
+	    vim.lsp.enable("pyright")
+	    vim.lsp.enable("gopls")
+	    vim.lsp.enable("clangd")
+	end,
+    },
 }
 
